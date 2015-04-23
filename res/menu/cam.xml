@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="net.dnsalias.vbr.camremote.CamActivity" >
+<item android:id="@+id/focus"
+      android:title="Focus">
+	
+     <menu android:id="@+id/sousmenu">
+	 	<item android:id="@+id/autofocus"
+	       android:title="Auto Focus"   />
+	 	<item android:id="@+id/infinity"
+	       android:title="Focus to Infinity"   />
+     </menu>
+</item>
+
+    
+</menu>
