@@ -1,8 +1,12 @@
 package net.dnsalias.vbr.camremote;
 
+//import android.support.v7.app.ActionBar;
 import android.os.Bundle;
+import android.os.Environment;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Surface;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,6 +28,7 @@ import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.Size;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
@@ -58,27 +63,8 @@ public class CamActivity extends Activity {
 		myContext = this;
 		initialize();    
 
-		new Thread(new ClientTask()).start();
-
-	}
-
-	private int findFrontFacingCamera() {
-		int cameraId = -1;
-		// Search for the front facing camera
-		int numberOfCameras = Camera.getNumberOfCameras();
-		Log.d(TAG, "findFrontFacingCamera - num:  " + numberOfCameras);
-
-		for (int i = 0; i < numberOfCameras; i++) {
-			CameraInfo info = new CameraInfo();
-			Camera.getCameraInfo(i, info);
-			Log.d(TAG, "findFrontFacingCamera - num:  " + i + " face: " + info.facing);
-			if (info.facing == CameraInfo.CAMERA_FACING_FRONT) {
-				cameraId = i;
-				cameraFront = true;
-				break;
-			}
-		}
-		return cameraId;
+		//TODO: new Thread(new ClientTask()).start();
+		Log.d(TAG, "onCreate'd");
 	}
 
 	private int findBackFacingCamera() {
@@ -105,22 +91,24 @@ public class CamActivity extends Activity {
 
 	public void onResume() {
 		super.onResume();
-		if (!hasCamera(myContext)) {
+		Log.d(TAG,"activity camera onResume.");
+
+		if (!checkCameraHardware(myContext)) {
 			Toast toast = Toast.makeText(myContext, "Sorry, your phone does not have a camera!", Toast.LENGTH_LONG);
 			Log.d(TAG, "onResume - Sorry, your phone does not have a camera!");
 			toast.show();
 			finish();
 		}
 		if (mCamera == null) {
+			Log.d(TAG,"acquireing camera onResume.");
 			//if the front facing camera does not exist
-			if (findFrontFacingCamera() < 0) {
-				Toast.makeText(this, "No front facing camera found.", Toast.LENGTH_LONG).show();
-				Log.d(TAG, "onResume - No front facing camera found.");
-				switchCamera.setVisibility(View.GONE);
-			}
-			mCamera = Camera.open(findBackFacingCamera());
+
+			//TODO: 
+			switchCamera.setVisibility(View.GONE);
+
+			mCamera = getCameraInstance(); // Camera.open(findBackFacingCamera());
 			mPicture = getPictureCallback();
-			mPreview.refreshCamera(mCamera,0,0);
+			mPreview.refreshCamera(mCamera);
 		}
 	}
 
@@ -136,6 +124,9 @@ public class CamActivity extends Activity {
 		switchCamera.setOnClickListener(switchCameraListener);
 	}
 
+	/*
+	 * TODO: better idea ...
+	 */
 	OnClickListener switchCameraListener = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
@@ -155,12 +146,13 @@ public class CamActivity extends Activity {
 		}
 	};
 
+	// TODO: better
 	public void chooseCamera() {
 		//if the camera preview is the front
 		Log.d(TAG, "chooseCamera - check : " + cameraFront);
 		if (cameraFront) {
 			Log.d(TAG, "chooseCamera -  use front camera ");
-			int cameraId = findFrontFacingCamera();
+			int cameraId = 0; // findFrontFacingCamera();
 			if (cameraId >= 0) {
 				//open the backFacingCamera
 				//set a picture callback
@@ -168,7 +160,7 @@ public class CamActivity extends Activity {
 
 				mCamera = Camera.open(cameraId);
 				mPicture = getPictureCallback();
-				mPreview.refreshCamera(mCamera,0,0);
+				mPreview.refreshCamera(mCamera);
 			}
 		} else {
 			Log.d(TAG, "chooseCamera -  use back camera ");
@@ -180,7 +172,7 @@ public class CamActivity extends Activity {
 
 				mCamera = Camera.open(cameraId);
 				mPicture = getPictureCallback();
-				mPreview.refreshCamera(mCamera,0,0);
+				mPreview.refreshCamera(mCamera);
 			}
 		}
 	}
@@ -188,11 +180,25 @@ public class CamActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
+		Log.d(TAG,"release camera onPause.");
 		//when on Pause, release camera in order to be used from other applications
 		releaseCamera();
 	}
 
-	private boolean hasCamera(Context context) {
+	/** A safe way to get an instance of the Camera object. */
+	public static Camera getCameraInstance(){
+		Camera c = null;
+		try {
+			c = Camera.open(); // attempt to get a Camera instance
+		}
+		catch (Exception e){
+			// Camera is not available (in use or does not exist)
+			Log.d(TAG, "getCameraInstance: Error getting camera : " + e.getMessage());
+		}
+		return c; // returns null if camera is unavailable
+	}
+
+	private boolean checkCameraHardware(Context context) {
 		//check if the device has camera
 		/*
         if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
@@ -217,68 +223,66 @@ public class CamActivity extends Activity {
 			@Override
 			public void onPictureTaken(byte[] data, Camera camera) {
 				//make a new picture file
+				FileOutputStream fos;
 
 				File pictureFile = getOutputMediaFile();
 
-				if (pictureFile == null) {
-					return;
-				}
 				try {
-					//write the file
-					FileOutputStream fos = new FileOutputStream(pictureFile);
+					if (pictureFile == null) {
+						Log.d(TAG, "onPictureTaken - no file");
+						/*
+					mPreview.refreshCamera(mCamera);
+					capture.setEnabled(true);
+					return;
+						 */
+						fos = openFileOutput("IMG000.jpg",
+								Context.MODE_APPEND | Context.MODE_WORLD_READABLE);
+					} else {							
+						//write the file
+						fos = new FileOutputStream(pictureFile);
+					}
 					fos.write(data);
 					fos.close();
-					Toast toast = Toast.makeText(myContext, "Picture saved: " + pictureFile.getName(), Toast.LENGTH_LONG);
-					toast.show();
+					//Toast toast = Toast.makeText(myContext, "Picture saved: " + pictureFile.getName(), Toast.LENGTH_LONG);
+					//toast.show();
 
 				} catch (FileNotFoundException e) {
+					e.printStackTrace();
 				} catch (IOException e) {
+					e.printStackTrace();
 				}
 
 				// use async for job
 				//new SaveImageTask().execute(data);
 
 				//refresh camera to continue preview
-				//mPreview.refreshCamera(mCamera,0,0);
-				Log.d(TAG, "onPictureTaken - jpeg wrote bytes: " + data.length + " to " + pictureFile.getAbsolutePath());
+				mPreview.refreshCamera(mCamera);
+				capture.setEnabled(true);
+				//Log.d(TAG, "onPictureTaken - jpeg wrote bytes: " + data.length + " to " + pictureFile.getAbsolutePath());
+				Log.d(TAG, "onPictureTaken - jpeg wrote bytes: " + data.length);
 				//Log.d(TAG, "onPictureTaken - jpeg");
 			}
 		};
 		return picture;
 	}
 
+
+	public void takePicture() {
+		Log.d(TAG, "takePicture - in");
+		//mCamera.stopPreview();
+
+		capture.setEnabled(false);
+		//setCameraParameters(); // here ?
+
+		//mCamera.startPreview();
+		mCamera.takePicture(null, null, mPicture);
+	}
+
 	OnClickListener captureListener = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
 			Log.d(TAG, "onClick Camera");
-			//mCamera.stopPreview();
-
-			Camera.Parameters mParameters = mCamera.getParameters();
-
-			// get the best picture size ...
-			List<Size> sizes = mParameters.getSupportedPictureSizes();
-			int i = 0;
-			int dim = 0;
-			for (Camera.Size cs : sizes) {
-				if(cs.width  >= 1024 && cs.height >= 768) dim = i;
-				Log.d(TAG, "onClick Camera - supports:(" + (i++) + ") " + cs.width + "x" + cs.height);
-			}
-			Size size = sizes.get(0); // TODO : better
-			mParameters.setPictureSize(size.width, size.height);
-
-			Size cs = mParameters.getPictureSize();
-			Log.d(TAG, "onClick Camera - current size : " + cs.width + " x " + cs.height );
-			Log.d(TAG, "onClick Camera - current focus : " + mParameters.getFocusMode());
-			Log.d(TAG, "onClick Camera - current expo  : " + mParameters.getExposureCompensation());
-			Log.d(TAG, "onClick Camera - current zoom  : " + mParameters.getZoom());
-
-			mParameters.setJpegQuality(100);//a value between 1 and 100
-			mParameters.setPictureFormat(PixelFormat.JPEG);
-			mCamera.setParameters(mParameters);
-
-			//mCamera.startPreview();
-			mCamera.takePicture(null, null, mPicture);
-
+			takePicture();
 		}
 	};
 
@@ -317,16 +321,29 @@ public class CamActivity extends Activity {
 
 	//make picture and save to a folder
 	private static File getOutputMediaFile() {
-		//make a new file directory inside the "sdcard" folder
-		File mediaStorageDir = new File("/sdcard/", "JCG Camera");
+		Log.d(TAG, "getOutputMediaFile");
 
-		//if this "JCGCamera folder does not exist
-		if (!mediaStorageDir.exists()) {
-			//if you cannot make this folder return
-			if (!mediaStorageDir.mkdirs()) {
-				return null;
+		if (Environment.getExternalStorageState().equals(
+				Environment.MEDIA_MOUNTED)) {
+			Log.d(TAG, "getOutputMediaFile - sdcard mounted");
+
+			//make a new file directory inside the "sdcard" folder
+			//File sdCard = Environment.getExternalStorageDirectory();
+			File storageDir = Environment.getExternalStoragePublicDirectory(
+					Environment.DIRECTORY_PICTURES);
+			//Log.d(TAG, "getOutputMediaFile - storage is " + getFilesDir());
+			File mediaStorageDir = new File (storageDir.getAbsolutePath() + File.separator + "Camremote");
+			//File mediaStorageDir = Environment.getExternalStorageDirectory();
+
+
+			//if this "JCGCamera folder does not exist
+			if (!mediaStorageDir.exists()) {
+				//if you cannot make this folder return
+				if (!mediaStorageDir.mkdirs()) {
+					Log.d(TAG, "getOutputMediaFile - cannot create dirs");
+					return null;
+				}
 			}
-		}
 
 		//take the current timeStamp
 		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -335,6 +352,10 @@ public class CamActivity extends Activity {
 		mediaFile = new File(mediaStorageDir.getPath() + File.separator + "IMG_" + timeStamp + ".jpg");
 
 		return mediaFile;
+		} else {
+			Log.d(TAG, "getOutputMediaFile - sdcard unmounted");
+			return null;
+		}
 	}
 
 	private void releaseCamera() {
@@ -342,6 +363,29 @@ public class CamActivity extends Activity {
 		if (mCamera != null) {
 			mCamera.release();
 			mCamera = null;
+		}
+	}
+
+	@Override
+	public boolean dispatchKeyEvent(KeyEvent event) {
+		int action = event.getAction();
+		int keyCode = event.getKeyCode();
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_VOLUME_UP:
+			if (action == KeyEvent.ACTION_DOWN) {
+				//TODO
+				Log.d(TAG, "vol up");
+				takePicture();
+			}
+			return true;
+		case KeyEvent.KEYCODE_VOLUME_DOWN:
+			if (action == KeyEvent.ACTION_DOWN) {
+				//TODO
+				Log.d(TAG, "vol down");
+			}
+			return true;
+		default:
+			return super.dispatchKeyEvent(event);
 		}
 	}
 
