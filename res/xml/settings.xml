@@ -1,0 +1,29 @@
+<!--?xml version="1.0" encoding="utf-8"?-->
+<preferencescreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="Settings">
+ 
+    <preferencecategory 
+        android:title="Network Connection"
+        android:summary="Network configuration">
+        <edittextpreference 
+            android:title="Server Name" 
+            android:summary="Name or Ip of server" 
+            android:key="prefServername"
+             android:defaultValue="127.0.0.1"/>
+        <edittextpreference 
+            android:title="Server Port" 
+            android:summary="Port of server to connect to" 
+           android:key="prefServerport"
+            android:defaultValue="8080"/>
+    </preferencecategory>
+     
+    <preferencecategory android:title="Camera Setting">
+        <ListPreference
+    	 android:entries="@array/listOptions"
+     	android:entryValues="@array/listValues"
+     	android:key="listpref"
+     	android:summary="List preference example"
+     	android:title="List preference" />
+    </preferencecategory>
+ 
+</preferencescreen>

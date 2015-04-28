@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,6 +22,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
@@ -52,7 +54,8 @@ public class CamActivity extends Activity {
 	private Socket socket;
 	private static final int SERVERPORT = 5000;
 	private static final String SERVER_IP = "10.0.2.2";
-
+	private URI uri;
+	private CamSocketListener camsocket;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +66,8 @@ public class CamActivity extends Activity {
 		myContext = this;
 		initialize();    
 
+		
+		
 		//TODO: new Thread(new ClientTask()).start();
 		Log.d(TAG, "onCreate'd");
 	}
@@ -104,7 +109,7 @@ public class CamActivity extends Activity {
 			//if the front facing camera does not exist
 
 			//TODO: 
-			switchCamera.setVisibility(View.GONE);
+			//switchCamera.setVisibility(View.GONE);
 
 			mCamera = getCameraInstance(); // Camera.open(findBackFacingCamera());
 			mPicture = getPictureCallback();
@@ -121,28 +126,21 @@ public class CamActivity extends Activity {
 		capture.setOnClickListener(captureListener);
 
 		switchCamera = (Button) findViewById(R.id.button_ChangeCamera);
-		switchCamera.setOnClickListener(switchCameraListener);
+		switchCamera.setOnClickListener(connectCameraListener);
 	}
 
 	/*
 	 * TODO: better idea ...
 	 */
-	OnClickListener switchCameraListener = new OnClickListener() {
+	OnClickListener connectCameraListener = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
-			//get the number of cameras
-			int camerasNumber = Camera.getNumberOfCameras();
-			if (camerasNumber > 1) {
-				//release the old camera instance
-				//switch camera, from the front and the back and vice versa
-
-				releaseCamera();
-				chooseCamera();
-			} else {
-				Toast toast = Toast.makeText(myContext, "Sorry, your phone has only one camera!", Toast.LENGTH_LONG);
-				Log.d(TAG, "switchCameraListener - Sorry, your phone has only one camera!");
-				toast.show();
-			}
+			Log.d(TAG, "connectCameraListener - connecting...!");
+			// TODO:
+			uri = URI.create("ws://10.24.244.99:5000/remotecam");
+			camsocket = new CamSocketListener(uri,myContext);
+			
+			//camsocket.send();
 		}
 	};
 
@@ -222,6 +220,10 @@ public class CamActivity extends Activity {
 
 			@Override
 			public void onPictureTaken(byte[] data, Camera camera) {
+				Log.d(TAG, "onPictureTaken - in");
+				
+				camsocket.sendPicture(data);
+				
 				//make a new picture file
 				FileOutputStream fos;
 
@@ -266,7 +268,7 @@ public class CamActivity extends Activity {
 		return picture;
 	}
 
-
+	// on main thread !
 	public void takePicture() {
 		Log.d(TAG, "takePicture - in");
 		//mCamera.stopPreview();
@@ -404,9 +406,16 @@ public class CamActivity extends Activity {
 		// Handle action bar item clicks here. The action bar will
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.focus) {
-			return true;
+		
+		switch (item.getItemId()) {
+		case  R.id.focus :
+				return true;
+				//break;
+		case R.id.btnPrefs:
+			Intent intent = new Intent(CamActivity.this, CamremoteSetting.class);
+			startActivity(intent);
+			break;
+
 		}
 		return super.onOptionsItemSelected(item);
 	}
