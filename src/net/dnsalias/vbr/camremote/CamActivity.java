@@ -23,6 +23,7 @@ import java.util.List;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
@@ -39,6 +40,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.util.Log;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 
 public class CamActivity extends Activity {
 	private static final String TAG = "CamActivity";
@@ -51,9 +53,9 @@ public class CamActivity extends Activity {
 	private boolean cameraFront = false;
 
 	// client socket part ?
-	private Socket socket;
-	private static final int SERVERPORT = 5000;
-	private static final String SERVER_IP = "10.0.2.2";
+	//private Socket socket;
+	//private static final int SERVERPORT = 5000;
+	//private static final String SERVER_IP = "10.0.2.2";
 	private URI uri;
 	private CamSocketListener camsocket;
 
@@ -137,6 +139,11 @@ public class CamActivity extends Activity {
 		public void onClick(View v) {
 			Log.d(TAG, "connectCameraListener - connecting...!");
 			// TODO:
+			SharedPreferences prefs = PreferenceManager
+				    .getDefaultSharedPreferences(CamActivity.this);
+			String port = prefs.getString("prefServerport", "5000");
+			String server = prefs.getString("prefServername", "127.0.0.1");
+			Log.d(TAG, "connectCameraListener URI : " + server + " " + port);
 			uri = URI.create("ws://10.24.244.99:5000/remotecam");
 			camsocket = new CamSocketListener(uri,myContext);
 			
@@ -423,6 +430,7 @@ public class CamActivity extends Activity {
 	/*
 	 * client socket handling
 	 */
+	/*
 	public class ClientTask implements Runnable {
 
 		@Override
@@ -439,4 +447,5 @@ public class CamActivity extends Activity {
 		}
 
 	}
+	*/
 }

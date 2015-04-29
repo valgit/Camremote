@@ -217,6 +217,40 @@ public void setCameraParameters(int w,int h) {
 
     }
 
+/* 
+ * TODO for preview :
+ private final LinkedList<byte[]> mQueue = new LinkedList<byte[]>();
+ http://www.codepool.biz/tech-frontier/android/making-android-smart-phone-a-remote-ip-camera.html
+ https://github.com/DynamsoftRD/Android-IP-Camera
+ 
+ call onPause 
+  private void resetBuff() {
+
+        synchronized (mQueue) {
+            mQueue.clear();
+            //mLastFrame = null;
+        }
+    }
    
+   private Camera.PreviewCallback mPreviewCallback = new Camera.PreviewCallback() {
+
+        @Override
+        public void onPreviewFrame(byte[] data, Camera camera) {
+            // TODO Auto-generated method stub
+
+            Log.d(TAG, "onPreviewFrame");
+            
+            synchronized (mQueue) {
+                if (mQueue.size() == MAX_BUFFER) {
+                    mQueue.poll();
+                }
+                mQueue.add(data);
+            }
+            
+            //Preview.this.invalidate();
+        }
+    };
+	
+	*/
 }
 
