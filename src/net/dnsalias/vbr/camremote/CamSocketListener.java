@@ -39,14 +39,17 @@ public class CamSocketListener implements WebSocketClient.Listener {
 		Log.d(TAG, "CamSocketListener - out constr");
 	}
 	
+	/*
 	public void send() {
 		// Later… 
 		camsocket.send("hello!");
 		camsocket.send(new byte[] { (byte) 0xDE, (byte) 0xAD, (byte) 0xBE, (byte) 0xEF });		
 	}
+	*/
 	
 	public void close() {
 		camsocket.disconnect();
+		
 	}
 
 	@Override
@@ -68,7 +71,8 @@ public class CamSocketListener implements WebSocketClient.Listener {
 		} else {
 			*/
 			{
-			camsocket.send("hello: "+ manufacturer + " " + model);
+			camsocket.send("hello:"+ manufacturer + "," + model);
+			_Context.setConnected(true);
 		}
 	}
 
@@ -99,6 +103,7 @@ public class CamSocketListener implements WebSocketClient.Listener {
 	public void onDisconnect(int code, String reason) {
 		// TODO Auto-generated method stub
 		Log.d(TAG, String.format("Disconnected! Code: %d Reason: %s", code, reason));
+		_Context.setConnected(false);
 	}
 
 	@Override
@@ -108,9 +113,10 @@ public class CamSocketListener implements WebSocketClient.Listener {
 	}
 
 	public void sendPicture(byte[] data) {
-		Log.e(TAG, "Send Shot");
+		Log.d(TAG, "Send Shot : data are " + data.length);
 		camsocket.send("Shot");
-		camsocket.send(data);			
+		camsocket.send(data);	
+		Log.d(TAG, "Send Shot : out ");
 	}
 
 }
