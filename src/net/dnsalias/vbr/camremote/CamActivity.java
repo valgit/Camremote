@@ -58,7 +58,7 @@ public class CamActivity extends Activity {
 	//private static final String SERVER_IP = "10.0.2.2";
 	private URI uri;
 	private CamSocketListener camsocket;
-	private Boolean connected;
+	private boolean connected;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -144,14 +144,15 @@ public class CamActivity extends Activity {
 		@Override
 		public void onClick(View v) {
 			Log.d(TAG, "connectCameraListener - connecting...!");
-			if (connected) {
+			if (!connected) {
 			// TODO:
 			SharedPreferences prefs = PreferenceManager
 				    .getDefaultSharedPreferences(CamActivity.this);
 			String port = prefs.getString("prefServerport", "5000");
 			String server = prefs.getString("prefServername", "127.0.0.1");
 			Log.d(TAG, "connectCameraListener URI : ws://" + server + ":" + port + "/remotecam");
-			uri = URI.create("ws://10.24.244.99:5000/remotecam");
+			//uri = URI.create("ws://10.24.244.99:5000/remotecam");
+			uri = URI.create("ws://"+server+":"+port+"/remotecam");
 			camsocket = new CamSocketListener(uri,myContext);
 			
 			//camsocket.send();
