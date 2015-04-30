@@ -57,7 +57,7 @@ public class CamActivity extends Activity {
 	//private static final int SERVERPORT = 5000;
 	//private static final String SERVER_IP = "10.0.2.2";
 	private URI uri;
-	private CamSocketListener camsocket;
+	private CamSocketListener camsocket = null;
 	private boolean connected;
 
 	@Override
@@ -240,48 +240,47 @@ public class CamActivity extends Activity {
 			@Override
 			public void onPictureTaken(byte[] data, Camera camera) {
 				Log.d(TAG, "onPictureTaken - in");
-				
-				camsocket.sendPicture(data);
-				
-				//make a new picture file
-				FileOutputStream fos;
 
-				File pictureFile = getOutputMediaFile();
+				if (camsocket != null) 
+					camsocket.sendPicture(data);
+				else {
+					//make a new picture file
+					FileOutputStream fos;
 
-				try {
+					File pictureFile = getOutputMediaFile();
+
 					if (pictureFile == null) {
 						Log.d(TAG, "onPictureTaken - no file");
-						/*
-					mPreview.refreshCamera(mCamera);
-					capture.setEnabled(true);
-					return;
-						 */
-						fos = openFileOutput("IMG000.jpg",
-								Context.MODE_APPEND | Context.MODE_WORLD_READABLE);
-					} else {							
+
+						//refresh camera to continue preview
+						mPreview.refreshCamera(mCamera);
+						capture.setEnabled(true);
+						return ;
+					} 
+					try {
 						//write the file
 						fos = new FileOutputStream(pictureFile);
+
+						fos.write(data);
+						fos.close();
+
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
-					fos.write(data);
-					fos.close();
-					//Toast toast = Toast.makeText(myContext, "Picture saved: " + pictureFile.getName(), Toast.LENGTH_LONG);
-					//toast.show();
 
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
+					// use async for job
+					//new SaveImageTask().execute(data);
+					Log.d(TAG, "onPictureTaken - jpeg wrote bytes: " + data.length + " to " + pictureFile.getAbsolutePath());
+					//Log.d(TAG, "onPictureTaken - jpeg wrote bytes: " + data.length);
+					//Log.d(TAG, "onPictureTaken - jpeg");
 				}
-
-				// use async for job
-				//new SaveImageTask().execute(data);
 
 				//refresh camera to continue preview
 				mPreview.refreshCamera(mCamera);
 				capture.setEnabled(true);
-				//Log.d(TAG, "onPictureTaken - jpeg wrote bytes: " + data.length + " to " + pictureFile.getAbsolutePath());
-				Log.d(TAG, "onPictureTaken - jpeg wrote bytes: " + data.length);
-				//Log.d(TAG, "onPictureTaken - jpeg");
+				
 			}
 		};
 		return picture;
