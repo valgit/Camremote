@@ -290,6 +290,15 @@ public class CamActivity extends Activity {
 	public void takePicture() {
 		Log.d(TAG, "takePicture - in");
 		//mCamera.stopPreview();
+		
+		 //-- Must add the following callback to allow the camera to autofocus.
+	    mCamera.autoFocus(new Camera.AutoFocusCallback(){
+	        @Override
+	        public void onAutoFocus(boolean success, Camera camera) {
+	            Log.d(TAG, "onAutoFocus: isAutofocus " + Boolean.toString(success));
+	        }
+	    } );
+	    
 
 		capture.setEnabled(false);
 		//setCameraParameters(); // here ?
@@ -440,7 +449,14 @@ public class CamActivity extends Activity {
 
 	public void setConnected(boolean b) {
 		connected = b;
-		
+		if (b & (camsocket != null))  {
+			Camera.Parameters mParameters = mCamera.getParameters();
+
+			String mode = mParameters.get("whitebalance-values");			
+			camsocket.sendBalanceMode(mode);
+			mode = mParameters.get("exposure-mode-values");
+			camsocket.sendExposureMode(mode);
+		}
 	}
 
 	/*

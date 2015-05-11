@@ -119,4 +119,15 @@ public class CamSocketListener implements WebSocketClient.Listener {
 		Log.d(TAG, "Send Shot : out ");
 	}
 
+	public void sendBalanceMode(String modelist) {
+		camsocket.send("Balance:"+modelist);
+	}
+	
+	public void sendFocusMode(String modelist) {
+		camsocket.send("Focus:"+modelist);
+	}
+	
+	public void sendExposureMode(String modelist) {
+		camsocket.send("Exposure:"+modelist);
+	}
 }

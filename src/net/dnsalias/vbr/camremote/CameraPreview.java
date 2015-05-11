@@ -3,6 +3,7 @@ package net.dnsalias.vbr.camremote;
 import java.io.IOException;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
@@ -13,6 +14,7 @@ import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
@@ -20,6 +22,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     private SurfaceHolder mHolder;
     private Camera mCamera;
+    private byte[] mLastFrame = null;
+    private LinkedList<byte[]> mQueue = new LinkedList<byte[]>();
+    private static final int MAX_BUFFER = 15;
 
     public CameraPreview(Context context, Camera camera) {
         super(context);
@@ -28,17 +33,23 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mHolder.addCallback(this);
         // deprecated setting, but required on Android versions prior to 3.0
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        
+        // for drawing ?
+        //setWillNotDraw(false);
     }
 
     public void surfaceCreated(SurfaceHolder holder) {
         try {
             // create the surface and start camera preview
             if (mCamera == null) {
+            	//mCamera.setPreviewCallback(mPreviewCallback);
                 mCamera.setPreviewDisplay(holder);
                 mCamera.startPreview();
+                
+               
             }
         } catch (IOException e) {
-            Log.d(VIEW_LOG_TAG, "Error setting camera preview: " + e.getMessage());
+            Log.d(TAG, "Error setting camera preview: " + e.getMessage());
         }
     }
 
@@ -59,15 +70,16 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         setCamera(camera);
 
         try {
+        	//mCamera.setPreviewCallback(mPreviewCallback);
             mCamera.setPreviewDisplay(mHolder);
             mCamera.startPreview();
         } catch (Exception e) {
-            Log.d(VIEW_LOG_TAG, "Error starting camera preview: " + e.getMessage());
+            Log.d(TAG, "Error starting camera preview: " + e.getMessage());
         }
     }
 
     private Size getOptimalPreviewSize(List<Size> sizes, int w, int h) {
-        final double ASPECT_TOLERANCE = 0.05;
+        final double ASPECT_TOLERANCE = 0.3; // from stackoverflow ? 0.05;
         double targetRatio = (double) w / h;
         if (sizes == null) return null;
 
@@ -141,13 +153,7 @@ public void setCameraParameters(int w,int h) {
     mParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
     mParameters.setPreviewSize(optimalSize.width, optimalSize.height);
     
-    //-- Must add the following callback to allow the camera to autofocus.
-    mCamera.autoFocus(new Camera.AutoFocusCallback(){
-        @Override
-        public void onAutoFocus(boolean success, Camera camera) {
-            Log.d(TAG, "onAutoFocus: isAutofocus " + Boolean.toString(success));
-        }
-    } );
+   /* was autofocus here */
 
     
 	// get the best picture size ...
@@ -167,9 +173,22 @@ public void setCameraParameters(int w,int h) {
 	Log.d(TAG, "setCameraParameters - current expo  : " + mParameters.getExposureCompensation());
 	Log.d(TAG, "setCameraParameters - current zoom  : " + mParameters.getZoom());
 
+	Log.d(TAG, "Supported Exposure Modes:" + mParameters.get("exposure-mode-values"));    
+	Log.d(TAG, "Supported White Balance Modes:" + mParameters.get("whitebalance-values"));
+	Log.d(TAG, "Exposure setting = " + mParameters.get("exposure"));
+	Log.d(TAG, "White Balance setting = " + mParameters.get("whitebalance")); 
+	
 	mParameters.setJpegQuality(100);//a value between 1 and 100
 	mParameters.setPictureFormat(PixelFormat.JPEG);
 	mCamera.setParameters(mParameters);
+	
+	 /* test */
+    mCamera.autoFocus(new Camera.AutoFocusCallback(){
+        @Override
+        public void onAutoFocus(boolean success, Camera camera) {
+            Log.d(TAG, "onAutoFocus: isAutofocus " + Boolean.toString(success));
+        }
+    } );
 	
 }
 
@@ -192,10 +211,11 @@ public void setCameraParameters(int w,int h) {
         setCameraParameters(w,h);
 
         try {
+        	//mCamera.setPreviewCallback(mPreviewCallback);
             mCamera.setPreviewDisplay(mHolder);
             mCamera.startPreview();
         } catch (Exception e) {
-            Log.d(VIEW_LOG_TAG, "Error starting camera preview: " + e.getMessage());
+            Log.d(TAG, "Error starting camera preview: " + e.getMessage());
         }
     }
     
@@ -203,6 +223,9 @@ public void setCameraParameters(int w,int h) {
         // If your preview can change or rotate, take care of those events here.
         // Make sure to stop the preview before resizing or reformatting it.
         setupCamera(mCamera,w,h);
+        
+       
+        
     }
 
     public void setCamera(Camera camera) {
@@ -217,6 +240,48 @@ public void setCameraParameters(int w,int h) {
 
     }
 
+    @Override 
+    public void onDraw(Canvas canvas) { 
+
+        //drawGuidance
+    	Log.d(TAG, "onDraw");
+
+    } 
+    
+    private void resetBuff() {
+
+        synchronized (mQueue) {
+            mQueue.clear();
+            //mLastFrame = null;
+        }
+    }
+    
+    public byte[] getImageBuffer() {
+        synchronized (mQueue) {
+			if (mQueue.size() > 0) {
+				mLastFrame = mQueue.poll();
+			}
+    	}
+        
+        return mLastFrame;
+    }
+    
+    private Camera.PreviewCallback mPreviewCallback = new Camera.PreviewCallback() {
+
+        @Override
+        public void onPreviewFrame(byte[] data, Camera camera) {            
+            Log.d(TAG, "onPreviewFrame");
+            /*
+            synchronized (mQueue) {
+                if (mQueue.size() == MAX_BUFFER) {
+                    mQueue.poll();
+                }
+                mQueue.add(data);
+            } 
+            */                    
+        }
+    };
+    
 /* 
  * TODO for preview :
  private final LinkedList<byte[]> mQueue = new LinkedList<byte[]>();
@@ -224,32 +289,9 @@ public void setCameraParameters(int w,int h) {
  https://github.com/DynamsoftRD/Android-IP-Camera
  
  call onPause 
-  private void resetBuff() {
-
-        synchronized (mQueue) {
-            mQueue.clear();
-            //mLastFrame = null;
-        }
-    }
+  
    
-   private Camera.PreviewCallback mPreviewCallback = new Camera.PreviewCallback() {
-
-        @Override
-        public void onPreviewFrame(byte[] data, Camera camera) {
-            // TODO Auto-generated method stub
-
-            Log.d(TAG, "onPreviewFrame");
-            
-            synchronized (mQueue) {
-                if (mQueue.size() == MAX_BUFFER) {
-                    mQueue.poll();
-                }
-                mQueue.add(data);
-            }
-            
-            //Preview.this.invalidate();
-        }
-    };
+   
 	
 	*/
 }
