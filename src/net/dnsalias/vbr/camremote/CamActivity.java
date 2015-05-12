@@ -295,7 +295,7 @@ public class CamActivity extends Activity {
 	    mCamera.autoFocus(new Camera.AutoFocusCallback(){
 	        @Override
 	        public void onAutoFocus(boolean success, Camera camera) {
-	            Log.d(TAG, "onAutoFocus: isAutofocus " + Boolean.toString(success));
+	            Log.d(TAG, "take onAutoFocus: isAutofocus " + Boolean.toString(success));
 	        }
 	    } );
 	    
@@ -311,6 +311,8 @@ public class CamActivity extends Activity {
 		@Override
 		public void onClick(View v) {
 			Log.d(TAG, "onClick Camera");
+			// TODO: bug ?
+			//mCamera.setPreviewCallback(null);
 			takePicture();
 		}
 	};
@@ -390,6 +392,7 @@ public class CamActivity extends Activity {
 	private void releaseCamera() {
 		// stop and release camera
 		if (mCamera != null) {
+			mCamera.setPreviewCallback(null);
 			mCamera.release();
 			mCamera = null;
 		}
@@ -456,7 +459,14 @@ public class CamActivity extends Activity {
 			camsocket.sendBalanceMode(mode);
 			mode = mParameters.get("exposure-mode-values");
 			camsocket.sendExposureMode(mode);
+			
+			mPreview.setPreviewSource(this);
 		}
+	}
+
+	public void sendPreviewFrame(byte[] data) {
+		if (camsocket != null) 
+			camsocket.sendPreview(data);		
 	}
 
 	/*

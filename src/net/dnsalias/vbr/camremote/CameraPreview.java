@@ -42,7 +42,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         try {
             // create the surface and start camera preview
             if (mCamera == null) {
-            	//mCamera.setPreviewCallback(mPreviewCallback);
+            	mCamera.setPreviewCallback(mPreviewCallback);
                 mCamera.setPreviewDisplay(holder);
                 mCamera.startPreview();
                 
@@ -70,7 +70,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         setCamera(camera);
 
         try {
-        	//mCamera.setPreviewCallback(mPreviewCallback);
+        	mCamera.setPreviewCallback(mPreviewCallback);
             mCamera.setPreviewDisplay(mHolder);
             mCamera.startPreview();
         } catch (Exception e) {
@@ -150,7 +150,7 @@ public void setCameraParameters(int w,int h) {
 
     //parameters.setJpegQuality(100);//a value between 1 and 100
 
-    mParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+    mParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO );
     mParameters.setPreviewSize(optimalSize.width, optimalSize.height);
     
    /* was autofocus here */
@@ -211,7 +211,7 @@ public void setCameraParameters(int w,int h) {
         setCameraParameters(w,h);
 
         try {
-        	//mCamera.setPreviewCallback(mPreviewCallback);
+        	mCamera.setPreviewCallback(mPreviewCallback);
             mCamera.setPreviewDisplay(mHolder);
             mCamera.startPreview();
         } catch (Exception e) {
@@ -271,6 +271,9 @@ public void setCameraParameters(int w,int h) {
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {            
             Log.d(TAG, "onPreviewFrame");
+            //TODO: better way, too slow...
+            if (datasource!=null) 
+            	datasource.sendPreviewFrame(data);
             /*
             synchronized (mQueue) {
                 if (mQueue.size() == MAX_BUFFER) {
@@ -281,17 +284,19 @@ public void setCameraParameters(int w,int h) {
             */                    
         }
     };
+
+	private CamActivity datasource;
+
+    // set the source output for frame data
+	public void setPreviewSource(CamActivity camActivity) {
+		datasource = camActivity;		
+	}
     
 /* 
  * TODO for preview :
- private final LinkedList<byte[]> mQueue = new LinkedList<byte[]>();
+ 
  http://www.codepool.biz/tech-frontier/android/making-android-smart-phone-a-remote-ip-camera.html
  https://github.com/DynamsoftRD/Android-IP-Camera
- 
- call onPause 
-  
-   
-   
 	
 	*/
 }

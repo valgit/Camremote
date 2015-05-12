@@ -130,4 +130,11 @@ public class CamSocketListener implements WebSocketClient.Listener {
 	public void sendExposureMode(String modelist) {
 		camsocket.send("Exposure:"+modelist);
 	}
+
+	public void sendPreview(byte[] data) {
+		Log.d(TAG, "Send Preview : data are " + data.length);
+		camsocket.send("Preview");
+		camsocket.send(data);	
+		Log.d(TAG, "Send Preview : out ");
+	}
 }
