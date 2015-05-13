@@ -176,7 +176,7 @@ public class WebSocketClient {
         sendFrame(mParser.frame(data));
     }
 
-    public void send(byte[] data) {
+    public void send(final byte[] data) {
         sendFrame(mParser.frame(data));
     }
 
@@ -240,7 +240,7 @@ public class WebSocketClient {
                         }
                         OutputStream outputStream = mSocket.getOutputStream();
                         outputStream.write(frame);
-                        outputStream.flush();
+                        outputStream.flush();                        
                     }
                 } catch (IOException e) {
                     mListener.onError(e);

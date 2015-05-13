@@ -156,6 +156,7 @@ public class CamActivity extends Activity {
 			camsocket = new CamSocketListener(uri,myContext);
 			
 			//camsocket.send();
+			switchCamera.setText("disconnect");
 			} else {
 				camsocket.close();
 				//TODO: ?delete 
@@ -292,27 +293,28 @@ public class CamActivity extends Activity {
 		//mCamera.stopPreview();
 		
 		 //-- Must add the following callback to allow the camera to autofocus.
+		/* TODO:
 	    mCamera.autoFocus(new Camera.AutoFocusCallback(){
 	        @Override
 	        public void onAutoFocus(boolean success, Camera camera) {
 	            Log.d(TAG, "take onAutoFocus: isAutofocus " + Boolean.toString(success));
 	        }
 	    } );
-	    
+	    */
 
 		capture.setEnabled(false);
 		//setCameraParameters(); // here ?
 
 		//mCamera.startPreview();
+		// TODO: bug > 2.3
+		mCamera.setPreviewCallback(null);
 		mCamera.takePicture(null, null, mPicture);
 	}
 
 	OnClickListener captureListener = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
-			Log.d(TAG, "onClick Camera");
-			// TODO: bug ?
-			//mCamera.setPreviewCallback(null);
+			Log.d(TAG, "onClick Camera");			
 			takePicture();
 		}
 	};
@@ -460,7 +462,36 @@ public class CamActivity extends Activity {
 			mode = mParameters.get("exposure-mode-values");
 			camsocket.sendExposureMode(mode);
 			
+			int w = mParameters.getPreviewSize().width;
+			int h = mParameters.getPreviewSize().height;
+			camsocket.sendPreviewSize(w,h);
+			
+			// default is 17 (NV21)
+			//Log.d(TAG, "prev format is : " + mParameters.getPreviewFormat());
+			
+			//TODO:
+			/* 
 			mPreview.setPreviewSource(this);
+			*/
+			
+			new Thread(new Runnable() {
+			    public void run() {
+			    	while (connected) {
+			    		Log.d(TAG, "poll frame");
+			    		try {
+							Thread.sleep(120);
+							byte[] data = mPreview.getImageBuffer();
+				    		sendPreviewFrame(data);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+			    		
+			    		
+			    	}
+			    }
+			}).start();
+			
 		}
 	}
 

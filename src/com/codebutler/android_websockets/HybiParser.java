@@ -177,11 +177,11 @@ public class HybiParser {
         return frame(data, OP_TEXT, -1);
     }
 
-    public byte[] frame(byte[] data) {
+    public byte[] frame(final byte[] data) {
         return frame(data, OP_BINARY, -1);
     }
 
-    private byte[] frame(byte[] data, int opcode, int errorCode)  {
+    private byte[] frame(final byte[] data, int opcode, int errorCode)  {
         return frame((Object)data, opcode, errorCode);
     }
 
@@ -189,7 +189,7 @@ public class HybiParser {
         return frame((Object)data, opcode, errorCode);
     }
 
-    private byte[] frame(Object data, int opcode, int errorCode) {
+    private byte[] frame(final Object data, int opcode, int errorCode) {
         if (mClosed) return null;
 
         Log.d(TAG, "Creating frame for: " + data + " op: " + opcode + " err: " + errorCode);
@@ -236,7 +236,7 @@ public class HybiParser {
             System.arraycopy(mask, 0, frame, header, mask.length);
             mask(frame, mask, offset);
         }
-
+      
         return frame;
     }
 

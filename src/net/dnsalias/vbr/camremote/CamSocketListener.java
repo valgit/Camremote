@@ -137,4 +137,9 @@ public class CamSocketListener implements WebSocketClient.Listener {
 		camsocket.send(data);	
 		Log.d(TAG, "Send Preview : out ");
 	}
+
+	public void sendPreviewSize(int w, int h) {
+		camsocket.send("PSize:"+w+","+h);
+		
+	}
 }

@@ -25,7 +25,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private byte[] mLastFrame = null;
     private LinkedList<byte[]> mQueue = new LinkedList<byte[]>();
     private static final int MAX_BUFFER = 15;
-
+    
     public CameraPreview(Context context, Camera camera) {
         super(context);
         mCamera = camera;
@@ -118,6 +118,21 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 /*
  * real workhorse of picture
  */
+    private int getDisplayOrientation() {
+    	Display display = ((WindowManager)getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        //Display display = ((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+        int rotation = display.getRotation();
+
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0: degrees = 0; break;
+            case Surface.ROTATION_90: degrees = 90; break;
+            case Surface.ROTATION_180: degrees = 180; break;
+            case Surface.ROTATION_270: degrees = 270; break;
+        }
+        return degrees;
+    }
+    
 public void setCameraParameters(int w,int h) {
 	Log.d(TAG, "setCameraParameters - in");
 	Camera.Parameters mParameters = mCamera.getParameters();
@@ -133,17 +148,7 @@ public void setCameraParameters(int w,int h) {
     Log.d(TAG, "INFO: optimal size : " + optimalSize.height + "," + optimalSize.width);
 
     
-    Display display = ((WindowManager)getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-    //Display display = ((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
-    int rotation = display.getRotation();
-
-    int degrees = 0;
-    switch (rotation) {
-        case Surface.ROTATION_0: degrees = 90; break;
-        case Surface.ROTATION_90: degrees = 180; break;
-        case Surface.ROTATION_180: degrees = 270; break;
-        case Surface.ROTATION_270: degrees = 0; break;
-    }
+    int degrees = getDisplayOrientation();
 
     mCamera.setDisplayOrientation(degrees);
     Log.d(TAG, "INFO: orient " + degrees);
@@ -259,6 +264,7 @@ public void setCameraParameters(int w,int h) {
     public byte[] getImageBuffer() {
         synchronized (mQueue) {
 			if (mQueue.size() > 0) {
+				Log.d(TAG, " Q size " + mQueue.size());
 				mLastFrame = mQueue.poll();
 			}
     	}
@@ -266,22 +272,34 @@ public void setCameraParameters(int w,int h) {
         return mLastFrame;
     }
     
+    /*
+     * TODO: maybo use 
+     * setPreviewCallbackWithBuffer(Camera.PreviewCallback)
+     * and  addCallbackBuffer(byte[])
+     * 
+     */
     private Camera.PreviewCallback mPreviewCallback = new Camera.PreviewCallback() {
-
+    	//private long timestamp=0;
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {            
             Log.d(TAG, "onPreviewFrame");
             //TODO: better way, too slow...
+            //Log.v("CameraTest","Time Gap = "+(System.currentTimeMillis()-timestamp));
+            //timestamp=System.currentTimeMillis();
+            
+            /*
             if (datasource!=null) 
             	datasource.sendPreviewFrame(data);
-            /*
-            synchronized (mQueue) {
+            	*/
+            
+            synchronized (mQueue) {            	
                 if (mQueue.size() == MAX_BUFFER) {
-                    mQueue.poll();
+                    //mQueue.poll();
+                	mQueue.clear();
                 }
                 mQueue.add(data);
             } 
-            */                    
+                                
         }
     };
 
