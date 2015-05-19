@@ -20,6 +20,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import org.java_websocket.client.WebSocketClient;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -153,8 +155,10 @@ public class CamActivity extends Activity {
 			Log.d(TAG, "connectCameraListener URI : ws://" + server + ":" + port + "/remotecam");
 			//uri = URI.create("ws://10.24.244.99:5000/remotecam");
 			uri = URI.create("ws://"+server+":"+port+"/remotecam");
-			camsocket = new CamSocketListener(uri,myContext);
 			
+			camsocket = new CamSocketListener(uri,myContext);			
+			camsocket.connect();
+						
 			//camsocket.send();
 			switchCamera.setText("disconnect");
 			} else {
