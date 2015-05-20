@@ -31,9 +31,10 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     //private LinkedList<byte[]> mQueue = new LinkedList<byte[]>();
   //Creating shared object
     private BlockingQueue<byte[]> mQueue = new LinkedBlockingQueue<byte[]>();
-    private static final int MAX_BUFFER = 15;
     private int width;
 	private int height;
+	
+	private CamActivity datasource;
 	
     public CameraPreview(Context context, Camera camera) {
         super(context);
@@ -332,7 +333,7 @@ public void setCameraParameters(int w,int h) {
         }
     };
 
-	private CamActivity datasource;
+	
 
     // set the source output for frame data
 	public void setPreviewSource(CamActivity camActivity) {

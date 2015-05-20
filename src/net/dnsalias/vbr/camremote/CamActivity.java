@@ -475,20 +475,14 @@ public class CamActivity extends Activity {
 			/* 
 			mPreview.setPreviewSource(this);
 			*/
-			
-		     
+					     
 			new Thread(new Runnable() {
 			    public void run() {
 			    	while (connected) {
-			    		Log.d(TAG, "poll frame");
-			    		try {
-							Thread.sleep(120);
-							byte[] data = mPreview.getImageBuffer();
-				    		sendPreviewFrame(data);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+			    		//Log.d(TAG, "poll frame");
+			    		//Thread.sleep(120);
+						byte[] data = mPreview.getImageBuffer();
+						sendPreviewFrame(data);
 			    		
 			    		
 			    	}
