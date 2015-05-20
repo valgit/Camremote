@@ -1,10 +1,14 @@
 package net.dnsalias.vbr.camremote;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.ImageFormat;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.util.Log;
@@ -14,8 +18,9 @@ import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
     private static final String TAG = "CameraPreview";
@@ -23,9 +28,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private SurfaceHolder mHolder;
     private Camera mCamera;
     private byte[] mLastFrame = null;
-    private LinkedList<byte[]> mQueue = new LinkedList<byte[]>();
+    //private LinkedList<byte[]> mQueue = new LinkedList<byte[]>();
+  //Creating shared object
+    private BlockingQueue<byte[]> mQueue = new LinkedBlockingQueue<byte[]>();
     private static final int MAX_BUFFER = 15;
-    
+    private int width;
+	private int height;
+	
     public CameraPreview(Context context, Camera camera) {
         super(context);
         mCamera = camera;
@@ -157,6 +166,9 @@ public void setCameraParameters(int w,int h) {
 
     mParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO );
     mParameters.setPreviewSize(optimalSize.width, optimalSize.height);
+    // TODO: setup preview size
+    this.width = optimalSize.width;
+    this.height = optimalSize.height;
     
    /* was autofocus here */
 
@@ -262,13 +274,18 @@ public void setCameraParameters(int w,int h) {
     }
     
     public byte[] getImageBuffer() {
+    	/*
         synchronized (mQueue) {
 			if (mQueue.size() > 0) {
 				Log.d(TAG, " Q size " + mQueue.size());
 				mLastFrame = mQueue.poll();
 			}
-    	}
-        
+    	}*/
+    	try {
+			mLastFrame = mQueue.take();
+		} catch (InterruptedException e) {			
+			e.printStackTrace();			
+		}        
         return mLastFrame;
     }
     
@@ -279,7 +296,9 @@ public void setCameraParameters(int w,int h) {
      * 
      */
     private Camera.PreviewCallback mPreviewCallback = new Camera.PreviewCallback() {
-    	//private long timestamp=0;
+    	
+
+		//private long timestamp=0;
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {            
             Log.d(TAG, "onPreviewFrame");
@@ -292,13 +311,23 @@ public void setCameraParameters(int w,int h) {
             	datasource.sendPreviewFrame(data);
             	*/
             
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, width, height, null);
+            yuvImage.compressToJpeg(new Rect(0, 0, width, height), 50, out);
+            byte[] imageBytes = out.toByteArray();
+            /*
             synchronized (mQueue) {            	
                 if (mQueue.size() == MAX_BUFFER) {
                     //mQueue.poll();
                 	mQueue.clear();
                 }
-                mQueue.add(data);
-            } 
+                mQueue.add(imageBytes);
+            } */
+            try {
+				mQueue.put(imageBytes);
+			} catch (InterruptedException e) {				
+				e.printStackTrace();
+			}
                                 
         }
     };

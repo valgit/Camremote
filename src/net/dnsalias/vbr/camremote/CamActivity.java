@@ -19,6 +19,8 @@ import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.Activity;
 import android.content.Context;
@@ -474,6 +476,7 @@ public class CamActivity extends Activity {
 			mPreview.setPreviewSource(this);
 			*/
 			
+		     
 			new Thread(new Runnable() {
 			    public void run() {
 			    	while (connected) {

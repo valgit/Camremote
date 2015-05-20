@@ -6,12 +6,9 @@ import java.util.List;
 
 import org.apache.http.message.BasicNameValuePair;
 
-import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.os.Build;
 import android.util.Log;
-import android.view.View.OnClickListener;
-
 import com.codebutler.android_websockets.WebSocketClient;
 
 public class CamSocketListener implements WebSocketClient.Listener {
