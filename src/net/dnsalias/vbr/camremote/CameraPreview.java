@@ -297,26 +297,26 @@ public void setCameraParameters(int w,int h) {
      * 
      */
     private Camera.PreviewCallback mPreviewCallback = new Camera.PreviewCallback() {
-    	
 
-		//private long timestamp=0;
-        @Override
-        public void onPreviewFrame(byte[] data, Camera camera) {            
-            Log.d(TAG, "onPreviewFrame");
-            //TODO: better way, too slow...
-            //Log.v("CameraTest","Time Gap = "+(System.currentTimeMillis()-timestamp));
-            //timestamp=System.currentTimeMillis();
-            
-            /*
+
+    	//private long timestamp=0;
+    	@Override
+    	public void onPreviewFrame(byte[] data, Camera camera) {            
+    		Log.d(TAG, "onPreviewFrame");
+    		//TODO: better way, too slow...
+    		//Log.v("CameraTest","Time Gap = "+(System.currentTimeMillis()-timestamp));
+    		//timestamp=System.currentTimeMillis();
+
+    		/*
             if (datasource!=null) 
             	datasource.sendPreviewFrame(data);
-            	*/
-            
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, width, height, null);
-            yuvImage.compressToJpeg(new Rect(0, 0, width, height), 50, out);
-            byte[] imageBytes = out.toByteArray();
-            /*
+    		 */
+    		if (width != 0) {
+    			ByteArrayOutputStream out = new ByteArrayOutputStream();
+    			YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, width, height, null);
+    			yuvImage.compressToJpeg(new Rect(0, 0, width, height), 50, out);
+    			byte[] imageBytes = out.toByteArray();
+    			/*
             synchronized (mQueue) {            	
                 if (mQueue.size() == MAX_BUFFER) {
                     //mQueue.poll();
@@ -324,13 +324,14 @@ public void setCameraParameters(int w,int h) {
                 }
                 mQueue.add(imageBytes);
             } */
-            try {
-				mQueue.put(imageBytes);
-			} catch (InterruptedException e) {				
-				e.printStackTrace();
-			}
-                                
-        }
+    			try {
+    				mQueue.put(imageBytes);
+    			} catch (InterruptedException e) {				
+    				e.printStackTrace();
+    			}
+
+    		}
+    	}
     };
 
 	
