@@ -162,6 +162,7 @@ public class WebSocketClient {
                 public void run() {
                     try {
                         mSocket.close();
+                        mListener.onDisconnect(0, "close");
                         mSocket = null;
                     } catch (IOException ex) {
                         Log.d(TAG, "Error while disconnecting", ex);
