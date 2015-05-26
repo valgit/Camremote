@@ -266,7 +266,7 @@ public void setCameraParameters(int w,int h) {
 
     } 
     
-    private void resetBuff() {
+    public void resetBuff() {
 
         synchronized (mQueue) {
             mQueue.clear();

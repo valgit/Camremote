@@ -160,6 +160,11 @@ public class CamActivity extends Activity {
 			//camsocket.send();
 			switchCamera.setText("disconnect");
 			} else {
+				// reset preview
+				mCamera.setPreviewCallback(null);
+				// clear output buffers
+				mPreview.resetBuff();
+				
 				camsocket.close();
 				//TODO: ?delete 
 			}
@@ -307,9 +312,13 @@ public class CamActivity extends Activity {
 		capture.setEnabled(false);
 		//setCameraParameters(); // here ?
 
+		
+		
 		//mCamera.startPreview();
 		// TODO: bug > 2.3
 		mCamera.setPreviewCallback(null);
+		// clear output buffers
+		mPreview.resetBuff();
 		mCamera.takePicture(null, null, mPicture);
 	}
 
