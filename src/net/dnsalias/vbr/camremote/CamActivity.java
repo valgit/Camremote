@@ -143,10 +143,12 @@ public class CamActivity extends Activity {
 	 * TODO: better idea ...
 	 */
 	OnClickListener connectCameraListener = new OnClickListener() {
+		Thread thread;
+		
 		@Override
-		public void onClick(View v) {
-			Log.d(TAG, "connectCameraListener - connecting...!");
+		public void onClick(View v) {			
 			if (!connected) {
+				Log.d(TAG, "connectCameraListener - connecting...!");
 			// TODO:
 			SharedPreferences prefs = PreferenceManager
 				    .getDefaultSharedPreferences(CamActivity.this);
@@ -155,11 +157,15 @@ public class CamActivity extends Activity {
 			Log.d(TAG, "connectCameraListener URI : ws://" + server + ":" + port + "/remotecam");
 			//uri = URI.create("ws://10.24.244.99:5000/remotecam");
 			uri = URI.create("ws://"+server+":"+port+"/remotecam");
+						   
 			camsocket = new CamSocketListener(uri,myContext);
+			thread = new Thread(camsocket);
+			thread.start();
 			
 			//camsocket.send();
 			switchCamera.setText("disconnect");
 			} else {
+				Log.d(TAG, "connectCameraListener - disconnecting...!");
 				// reset preview
 				mCamera.setPreviewCallback(null);
 				// clear output buffers
@@ -167,6 +173,7 @@ public class CamActivity extends Activity {
 				
 				camsocket.close();
 				//TODO: ?delete 
+				thread.stop();
 			}
 		}
 	};
