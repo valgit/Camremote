@@ -297,15 +297,14 @@ public void setCameraParameters(int w,int h) {
      * 
      */
     private Camera.PreviewCallback mPreviewCallback = new Camera.PreviewCallback() {
-
-
-    	//private long timestamp=0;
+    	private long timestamp=0;
+    	
     	@Override
     	public void onPreviewFrame(byte[] data, Camera camera) {            
-    		Log.d(TAG, "onPreviewFrame");
+    		//Log.d(TAG, "onPreviewFrame");
     		//TODO: better way, too slow...
-    		//Log.v("CameraTest","Time Gap = "+(System.currentTimeMillis()-timestamp));
-    		//timestamp=System.currentTimeMillis();
+    		Log.d("onPreviewFrame","Time Gap = "+(System.currentTimeMillis()-timestamp));
+    		timestamp=System.currentTimeMillis();
 
     		/*
             if (datasource!=null) 

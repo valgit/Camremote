@@ -107,6 +107,7 @@ public class CamSocketListener implements WebSocketClient.Listener {
 	public void onError(Exception error) {
 		// TODO Auto-generated method stub
 		Log.e(TAG, "Error!", error);
+		_Context.setConnected(false);
 	}
 
 	public void sendPicture(byte[] data) {
