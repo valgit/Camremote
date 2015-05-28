@@ -303,9 +303,10 @@ public void setCameraParameters(int w,int h) {
     	public void onPreviewFrame(byte[] data, Camera camera) {            
     		//Log.d(TAG, "onPreviewFrame");
     		//TODO: better way, too slow...
+    		/*
     		Log.d("onPreviewFrame","Time Gap = "+(System.currentTimeMillis()-timestamp));
     		timestamp=System.currentTimeMillis();
-
+*/
     		/*
             if (datasource!=null) 
             	datasource.sendPreviewFrame(data);
@@ -322,12 +323,12 @@ public void setCameraParameters(int w,int h) {
                 	mQueue.clear();
                 }
                 mQueue.add(imageBytes);
-            } */
+            } *//*
     			try {
     				mQueue.put(imageBytes);
     			} catch (InterruptedException e) {				
     				e.printStackTrace();
-    			}
+    			}*/
 
     		}
     	}

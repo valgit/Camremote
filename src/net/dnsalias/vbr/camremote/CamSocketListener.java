@@ -26,12 +26,14 @@ public class CamSocketListener implements Runnable {
 	private URI uri;
 
 	private CamActivity _Context; // TODO: Activity ?
-
+	private boolean running;
+	
 	public CamSocketListener(URI uri, Context myContext) { // URI.create("ws://yourserver.com")
 		Log.d(TAG, "CamSocketListener - constr");
 		_Context=(CamActivity)myContext;
 		this.uri = uri;		
 
+		running = true;
 		Log.d(TAG, "CamSocketListener - out constr");
 	}
 
@@ -45,6 +47,8 @@ public class CamSocketListener implements Runnable {
 
 	public void close() {
 		try {
+			running = false;
+			// maybe we should close half way ?
 			dIn.close();
 			dOs.close();
 			camsocket.close();
@@ -55,11 +59,11 @@ public class CamSocketListener implements Runnable {
 		_Context.setConnected(false);
 	}
 
-	public void onConnect() {	
+	public void sendIdentity() {	
 		// try to get a name ?
-		String manufacturer = Build.MANUFACTURER;
-		String model = Build.MODEL;
-
+		//String manufacturer = Build.MANUFACTURER;
+		//String model = Build.MODEL;
+		String deviceName = Build.MANUFACTURER + "," + Build.MODEL;
 		//TODO: better name ?
 		/* 
 		 BluetoothAdapter myDevice = BluetoothAdapter.getDefaultAdapter();
@@ -72,23 +76,29 @@ public class CamSocketListener implements Runnable {
 			camsocket.send("hello: "+deviceName);
 		} else {
 		 */
-		try {
-			// should be TLV !!
-			//os.write("takeShot".getBytes());
-			//dOs.writeChar(0x0053); // "S"
-
-			dOs.writeChar('H');
-			byte[] msg = (manufacturer + "," + model).getBytes("UTF-8");
-
-			dOs.writeInt(msg.length);
-			dOs.write(msg);
-
-		} catch (IOException e) {		
-			e.printStackTrace();
-		}			
+		sendString('H',deviceName);
 
 		_Context.setConnected(true);
 
+	}
+
+
+	private void sendString(char type,String data)
+	{
+		if (data != null ) {
+			// refuse to send null data !
+			try {
+
+				dOs.writeChar(type);
+				byte[] msg = data.getBytes("UTF-8");
+
+				dOs.writeInt(msg.length);
+				dOs.write(msg);
+				dOs.flush();
+			} catch (IOException e) {		
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/*
@@ -123,19 +133,28 @@ public class CamSocketListener implements Runnable {
 		Log.d(TAG, "Send Shot : data are " + data.length);
 		//camsocket.send("Shot");
 		//camsocket.send(data);	
+		try {
+			dOs.writeChar('S');
+			dOs.writeInt(data.length);
+			dOs.write(data);
+			dOs.flush();
+		} catch (IOException e) {			
+			e.printStackTrace();
+		}		
+
 		Log.d(TAG, "Send Shot : out ");
 	}
 
-	public void sendBalanceMode(String modelist) {
-		//camsocket.send("Balance:"+modelist);
+	public void sendBalanceMode(String modelist) {		
+		sendString('B',modelist);
 	}
 
-	public void sendFocusMode(String modelist) {
-		//camsocket.send("Focus:"+modelist);
+	public void sendFocusMode(String modelist) {		
+		sendString('F',modelist);
 	}
 
 	public void sendExposureMode(String modelist) {
-		//camsocket.send("Exposure:"+modelist);
+		sendString('E',modelist);		
 	}
 
 	public void sendPreview(byte[] data) {
@@ -146,8 +165,27 @@ public class CamSocketListener implements Runnable {
 	}
 
 	public void sendPreviewSize(int w, int h) {
-		//camsocket.send("PSize:"+w+","+h);
+		sendString('T',(w+","+h));
 
+	}
+
+	private void parseMessage(char type) {		
+		switch (type) {
+		case 'S': // takeShot
+			// this should run on main thread !
+			_Context.runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					_Context.takePicture();
+				}
+			});
+			break;
+		case 'Q' : // quit !
+			break;
+		default:
+			System.out.println("parseMessage of type :" + type );
+		}
 	}
 
 	@Override
@@ -167,12 +205,12 @@ public class CamSocketListener implements Runnable {
 		}
 
 		// async call ?
-		onConnect();
+		sendIdentity();
 
 		// background job here ...
 		try {	
-			while (true) {								
-				char type = (char) dIn.readByte();
+			while (running) {								
+				char type =  dIn.readChar();
 				int length = dIn.readInt();                    // read length of incoming message
 				Log.d(TAG,"will read type "+ type + " of len : "+length);
 				if(length>0) {
@@ -180,8 +218,9 @@ public class CamSocketListener implements Runnable {
 					dIn.readFully(message, 0, message.length); // read the message
 					// do something with it !
 					Log.d(TAG,"read " + length + " bytes");
+					//parseMessage(type,length,message);
 				} else {				
-					Log.d(TAG,"nothing read ?");
+					parseMessage(type);
 				}
 			} // while
 		} catch (SocketException e) {
