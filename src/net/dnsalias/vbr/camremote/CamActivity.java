@@ -3,36 +3,22 @@ package net.dnsalias.vbr.camremote;
 //import android.support.v7.app.ActionBar;
 import android.os.Bundle;
 import android.os.Environment;
-import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Surface;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.Socket;
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.PictureCallback;
-import android.hardware.Camera.Size;
-import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -157,7 +143,8 @@ public class CamActivity extends Activity {
 			Log.d(TAG, "connectCameraListener URI : ws://" + server + ":" + port + "/remotecam");
 			//uri = URI.create("ws://10.24.244.99:5000/remotecam");
 			uri = URI.create("ws://"+server+":"+port+"/remotecam");
-						   
+				
+			// TODO:
 			camsocket = new CamSocketListener(uri,myContext);
 			thread = new Thread(camsocket);
 			thread.start();
