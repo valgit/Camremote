@@ -46,6 +46,7 @@ public class CamActivity extends Activity {
 	//private static final String SERVER_IP = "10.0.2.2";
 	private URI uri;
 	private CamSocketListener camsocket = null;
+	Thread read_thread;
 	private boolean connected;
 
 	@Override
@@ -129,7 +130,7 @@ public class CamActivity extends Activity {
 	 * TODO: better idea ...
 	 */
 	OnClickListener connectCameraListener = new OnClickListener() {
-		Thread thread;
+		
 		
 		@Override
 		public void onClick(View v) {			
@@ -146,8 +147,8 @@ public class CamActivity extends Activity {
 				
 			// TODO:
 			camsocket = new CamSocketListener(uri,myContext);
-			thread = new Thread(camsocket);
-			thread.start();
+			read_thread = new Thread(camsocket);
+			read_thread.start();
 			
 			//camsocket.send();
 			switchCamera.setText("disconnect");
@@ -160,7 +161,7 @@ public class CamActivity extends Activity {
 				
 				camsocket.close();
 				//TODO: ?delete 
-				thread.stop();
+				//thread.stop();
 			}
 		}
 	};
@@ -478,14 +479,14 @@ public class CamActivity extends Activity {
 			/* 
 			mPreview.setPreviewSource(this);
 			*/
-					     
+			
 			new Thread(new Runnable() {
 			    public void run() {
 			    	while (connected) {
 			    		//Log.d(TAG, "poll frame");
 			    		//Thread.sleep(120);
 						byte[] data = mPreview.getImageBuffer();
-						sendPreviewFrame(data);
+						//TODO: sendPreviewFrame(data);
 			    		
 			    		
 			    	}

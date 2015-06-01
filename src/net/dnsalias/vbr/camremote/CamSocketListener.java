@@ -26,14 +26,15 @@ public class CamSocketListener implements Runnable {
 	private URI uri;
 
 	private CamActivity _Context; // TODO: Activity ?
-	private boolean running;
-	
-	public CamSocketListener(URI uri, Context myContext) { // URI.create("ws://yourserver.com")
+	private boolean running;	
+
+	public CamSocketListener( URI uri, Context myContext) { // URI.create("ws://yourserver.com")
 		Log.d(TAG, "CamSocketListener - constr");
 		_Context=(CamActivity)myContext;
 		this.uri = uri;		
 
 		running = true;
+		
 		Log.d(TAG, "CamSocketListener - out constr");
 	}
 
@@ -207,6 +208,8 @@ public class CamSocketListener implements Runnable {
 		// async call ?
 		sendIdentity();
 
+		Log.d(TAG, "CamSocketListener - socket thread up");
+		
 		// background job here ...
 		try {	
 			while (running) {								
@@ -232,4 +235,6 @@ public class CamSocketListener implements Runnable {
 		}
 
 	}
+ 
+	
 }
