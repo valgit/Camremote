@@ -323,12 +323,12 @@ public void setCameraParameters(int w,int h) {
                 	mQueue.clear();
                 }
                 mQueue.add(imageBytes);
-            } *//*
+            } */
     			try {
     				mQueue.put(imageBytes);
     			} catch (InterruptedException e) {				
     				e.printStackTrace();
-    			}*/
+    			}
 
     		}
     	}

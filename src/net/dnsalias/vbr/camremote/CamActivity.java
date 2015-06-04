@@ -486,7 +486,7 @@ public class CamActivity extends Activity {
 			    		//Log.d(TAG, "poll frame");
 			    		//Thread.sleep(120);
 						byte[] data = mPreview.getImageBuffer();
-						//TODO: sendPreviewFrame(data);
+						sendPreviewFrame(data);
 			    		
 			    		
 			    	}

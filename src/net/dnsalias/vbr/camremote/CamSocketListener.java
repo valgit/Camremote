@@ -28,6 +28,8 @@ public class CamSocketListener implements Runnable {
 	private CamActivity _Context; // TODO: Activity ?
 	private boolean running;	
 
+	private Thread write_thread;
+	
 	public CamSocketListener( URI uri, Context myContext) { // URI.create("ws://yourserver.com")
 		Log.d(TAG, "CamSocketListener - constr");
 		_Context=(CamActivity)myContext;
@@ -162,7 +164,15 @@ public class CamSocketListener implements Runnable {
 		Log.d(TAG, "Send Preview : data are " + data.length);
 		//camsocket.send("Preview");
 		//camsocket.send(data);	
-		Log.d(TAG, "Send Preview : out ");
+		try {
+			dOs.writeChar('P');
+			dOs.writeInt(data.length);
+			dOs.write(data);
+			dOs.flush();
+		} catch (IOException e) {			
+			e.printStackTrace();
+		}	
+		//Log.d(TAG, "Send Preview : out ");
 	}
 
 	public void sendPreviewSize(int w, int h) {
@@ -207,7 +217,31 @@ public class CamSocketListener implements Runnable {
 
 		// async call ?
 		sendIdentity();
-
+/*
+		// create a writer_thread
+		write_thread = new Thread(new Runnable() {
+		    public void run() {
+		    	while (running) {
+		    		//Log.d(TAG, "poll frame");
+		    		//Thread.sleep(120);
+		    		//TODO: should be a real producer !
+					byte[] data = mPreview.getImageBuffer();
+					//TODO: sendPreviewFrame(data);
+					try {
+						dOs.writeChar('P');
+						dOs.writeInt(data.length);
+						dOs.write(data);
+						dOs.flush();
+					} catch (IOException e) {			
+						e.printStackTrace();
+					}
+		    		
+		    	}
+		    }
+		});
+		write_thread.start();
+	*/
+		
 		Log.d(TAG, "CamSocketListener - socket thread up");
 		
 		// background job here ...
